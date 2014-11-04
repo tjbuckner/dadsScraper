@@ -1,6 +1,5 @@
-package dadsscraper_final;
+package dadsScraper;
 
-import java.awt.BorderLayout;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -11,11 +10,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import org.jsoup.Jsoup;
@@ -47,16 +44,17 @@ public class jFrameMain extends javax.swing.JFrame {
 
     DateFormat dateFormatNew = new SimpleDateFormat("MM/dd/yyyy");
     Date dateNew = new Date();
-
+    int num;
     String today = dateFormatNew.format(dateNew);
 
     int rowNum = 0;
     int entries = 0;
+    
+    double percent = 0;
 
     DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
     Date date = new Date();
 
-    //			String filePath = System.getProperty("user.dir") + "\\excel1.xls";
     String filePath = System.getProperty("user.home") + "\\Desktop\\excel_" + dateFormat.format(date) + ".tsv";
 
     File file = new File(filePath);
@@ -82,6 +80,9 @@ public class jFrameMain extends javax.swing.JFrame {
         jButtonExport = new javax.swing.JButton();
         jScrollPaneForTable = new javax.swing.JScrollPane();
         jTableData = new javax.swing.JTable();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
+        jProgressBar1 = new javax.swing.JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Pull-A-Part Scraper");
@@ -145,17 +146,25 @@ public class jFrameMain extends javax.swing.JFrame {
         });
         jScrollPaneForTable.setViewportView(jTableData);
 
+        jTextPane1.setEditable(false);
+        jTextPane1.setName(""); // NOI18N
+        jScrollPane1.setViewportView(jTextPane1);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jButtonRun, javax.swing.GroupLayout.DEFAULT_SIZE, 289, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButtonExport, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneForTable)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPaneForTable))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -164,17 +173,37 @@ public class jFrameMain extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.PREFERRED_SIZE, 456, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 21, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(5, 5, 5))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButtonRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunActionPerformed
-        repaint();
-
+        //repaint();
+        Thread scrapeThread = new Thread() {
+            public void run(){
+                scrape();
+            }
+        };
+        scrapeThread.start();
+    
+        
+    }//GEN-LAST:event_jButtonRunActionPerformed
+    
+    private void updateProgress(){
+        jTextPane1.setText("Percent completed: " + (int) percent + "% (" + num + " out of " + nums.length + " || Entries Collected: " + entries / 4 + ")");
+        jProgressBar1.setValue((int)percent);
+    }
+    private void scrape(){
+        jButtonRun.setEnabled(false);
         for (String[] row : data) {
             Arrays.fill(row, "");
         }
@@ -183,10 +212,16 @@ public class jFrameMain extends javax.swing.JFrame {
                 String url = "http://www.pullapart.com/inventory/search.aspx?LocId=10&MakeId=" + nums[i];
 
                 Document doc = Jsoup.connect(url).timeout(20 * 1000).get();
-
-                double percent = ((double) i * 100.0f) / (double) nums.length;
-
-                System.out.print("Percent completed: " + (int) percent + "% (" + i + " out of " + nums.length + " || Entries Collected: " + entries / 4 + ")\n");
+                num = i;
+                percent = ((double) i * 100.0f) / (double) nums.length;
+                
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateProgress();
+                    }
+                });
+                
 
                 boolean beenIncremented = false;
 
@@ -213,13 +248,13 @@ public class jFrameMain extends javax.swing.JFrame {
 
             jTableData.setModel(new DefaultTableModel(data, columnNames));
             jButtonExport.setEnabled(true);
+            jButtonRun.setEnabled(true);
         } catch (SocketTimeoutException ste) {
             JOptionPane.showMessageDialog(null, "Connection has timed out!");
         } catch (IOException ex) {
             Logger.getLogger(jFrameMain.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_jButtonRunActionPerformed
-
+    }
     private void jButtonExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExportActionPerformed
         toExcel(jTableData, file);
     }//GEN-LAST:event_jButtonExportActionPerformed
@@ -261,8 +296,11 @@ public class jFrameMain extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonExport;
     private javax.swing.JButton jButtonRun;
+    private javax.swing.JProgressBar jProgressBar1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPaneForTable;
     private javax.swing.JTable jTableData;
+    private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
 
     private void toExcel(JTable table, File file) {
