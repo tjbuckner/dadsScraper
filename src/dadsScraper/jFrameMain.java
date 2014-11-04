@@ -7,6 +7,7 @@ import java.net.SocketTimeoutException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,10 +23,13 @@ import org.jsoup.select.Elements;
 
 public class jFrameMain extends javax.swing.JFrame {
 
-    String columnNames[] = {
+    //String Array to store column names.
+    private final String columnNames[] = {
         "MAKE MODEL", "YEAR", "DATE ON LOT", "ROW"
     };
-    String nums[] = {
+
+    //String Array to store car make codes.
+    private final String[] makeCodes = {
         "7", "8", "9", "89", "11", "107", "12", "90", "13",
         "110", "91", "14", "15", "117", "16", "17", "71", "18", "19",
         "115", "20", "108", "21", "22", "92", "23", "24", "25", "26",
@@ -37,26 +41,46 @@ public class jFrameMain extends javax.swing.JFrame {
         "103", "60"
     };
 
-    int arrayX = 1500;
-    int arrayY = 4;
+    //X of data Array
+    private final int arrayX = 1500;
+    //Y of data Array
+    private final int arrayY = 4;
+    //data Array to store scraped data
+    private final String[][] data = new String[arrayX][arrayY];
 
-    String[][] data = new String[arrayX][arrayY];
+    //URL page number that is being scraped.
+    private int pageNum;
 
-    DateFormat dateFormatNew = new SimpleDateFormat("MM/dd/yyyy");
-    Date dateNew = new Date();
-    int num;
-    String today = dateFormatNew.format(dateNew);
-
-    int rowNum = 0;
-    int entries = 0;
-    
+    //    private int rowNum = 0;
+    //Number of entries scraped.
+    private int entries = 0;
+    //Percentage of pages scraped.
     double percent = 0;
 
-    DateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
-    Date date = new Date();
+    //Default to scraping just today.
+    public boolean justToday = true;
+    public boolean allDays = false;
+    public boolean pastThree = false;
 
-    String filePath = System.getProperty("user.home") + "\\Desktop\\excel_" + dateFormat.format(date) + ".tsv";
+    //Calendar object for date manipulation.
+    Calendar cal = Calendar.getInstance();
+    //Format for all scrape dates.
+    DateFormat dateFormatForScrapeDate = new SimpleDateFormat("MM/dd/yyyy");
+    //Initial date to scrape (TODAY).
+    String dateToScrape = dateFormatForScrapeDate.format(cal.getTime());
 
+    //String to store YESTERDAY's date.
+    String dateToScrape2;
+    //String to store the DAY BEFORE YESTERDAY's date.
+    String dateToScrape3;
+
+    //Format for excel file's date.
+    DateFormat dateFormatForExcelFile = new SimpleDateFormat("yyyy_MM_dd_HH_mm");
+    Date dateForExcelFile = cal.getTime();
+
+    //File path to save excel file.
+    String filePath = System.getProperty("user.home") + "\\Desktop\\excel_"
+            + dateFormatForExcelFile.format(dateForExcelFile) + ".tsv";
     File file = new File(filePath);
 
     /**
@@ -83,6 +107,9 @@ public class jFrameMain extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextPane1 = new javax.swing.JTextPane();
         jProgressBar1 = new javax.swing.JProgressBar();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Pull-A-Part Scraper");
@@ -144,120 +171,318 @@ public class jFrameMain extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        jTableData.setFocusable(false);
         jScrollPaneForTable.setViewportView(jTableData);
 
         jTextPane1.setEditable(false);
         jTextPane1.setName(""); // NOI18N
         jScrollPane1.setViewportView(jTextPane1);
 
+        jButton1.setActionCommand("jButtonToday");
+        jButton1.setLabel("JUST TODAY");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jButton2.setActionCommand("jButtonAll");
+        jButton2.setLabel("ALL DAYS");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jButton3.setActionCommand("jButton3Days");
+        jButton3.setLabel("PAST 3 DAYS");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 286, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPaneForTable))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.PREFERRED_SIZE, 456, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, 21, Short.MAX_VALUE)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(5, 5, 5))
+                .addContainerGap())
         );
+
+        jButton1.getAccessibleContext().setAccessibleName("jButtonToday");
+        jButton2.getAccessibleContext().setAccessibleName("jButtonAll");
+        jButton3.getAccessibleContext().setAccessibleName("jButton3Days");
+        jButton3.getAccessibleContext().setAccessibleDescription("");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Event listener for the RUN button.
+     *
+     * @param evt
+     */
     private void jButtonRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonRunActionPerformed
-        //repaint();
+        //New thread to scrape, so it doesn't conflict with GUI updates.
         Thread scrapeThread = new Thread() {
-            public void run(){
+            @Override
+            public void run() {
                 scrape();
             }
         };
         scrapeThread.start();
-    
-        
     }//GEN-LAST:event_jButtonRunActionPerformed
-    
-    private void updateProgress(){
-        jTextPane1.setText("Percent completed: " + (int) percent + "% (" + num + " out of " + nums.length + " || Entries Collected: " + entries / 4 + ")");
-        jProgressBar1.setValue((int)percent);
+
+    /**
+     * Method to update the GUI on the progress of the scrape.
+     */
+    private void updateProgress() {
+        //Update progress text pane.
+        jTextPane1.setText("                            "
+                + "         Percent completed: " + (int) percent + "% (" + pageNum
+                + " out of " + makeCodes.length + " || Entries Collected: " + entries
+                / 4 + ")");
+        //Update progress bar.
+        jProgressBar1.setValue((int) percent);
     }
-    private void scrape(){
+
+    /**
+     * Method to scrape PULL-A-PART
+     */
+    private void scrape() {
+        //Disable the run button while we're running (duh!).
         jButtonRun.setEnabled(false);
+
+        //Fill the data array with empty information.
         for (String[] row : data) {
             Arrays.fill(row, "");
         }
-        try {
-            for (int i = 0; i < nums.length; i++) {
-                String url = "http://www.pullapart.com/inventory/search.aspx?LocId=10&MakeId=" + nums[i];
 
+        //If we're scraping the past three days, we need to build Strings for the past two days.
+        if (pastThree) {
+            //Subtract a day...
+            cal.add(Calendar.DATE, -1);
+            //And assign it as YESTERDAY.
+            dateToScrape2 = dateFormatForScrapeDate.format(cal.getTime());
+            //Subtract a day...
+            cal.add(Calendar.DATE, -1);
+            //And assign it as DAY BEFORE YESTERDAY.
+            dateToScrape3 = dateFormatForScrapeDate.format(cal.getTime());
+        }
+
+        //try to...
+        try {
+            //Do this for each make in the makeCodes arry...
+            for (int i = 0; i < makeCodes.length; i++) {
+                //Construct a URL string appended with the current makeCode.
+                String url = "http://www.pullapart.com/inventory/search.aspx?Loc"
+                        + "Id=10&MakeId=" + makeCodes[i];
+
+                //Create a document object of the URL's HTML
                 Document doc = Jsoup.connect(url).timeout(20 * 1000).get();
-                num = i;
-                percent = ((double) i * 100.0f) / (double) nums.length;
-                
+                //Keep track of what makeCode we're on (for update GUI).
+                pageNum = i;
+                //Keep track of percentage we've done (also for update GUI).
+                percent = ((double) i * 100.0f) / (double) makeCodes.length;
+
+                //New thread to update GUI.
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
                         updateProgress();
                     }
                 });
-                
 
+                //Boolean to keep track of incrementing entries (once per entry).
                 boolean beenIncremented = false;
 
+                //Select each table with the gridview class
                 for (Element table : doc.select("table.gridview")) {
+                    //Then select each row
                     for (Element row : table.select("tr")) {
+                        //Select all td tags within the row
                         Elements tds = row.select("td");
+                        //If there are more than 4 tds in a row...
                         if (tds.size() > 4) {
+                            //For each td in the row...
                             for (int x = 1; x < 5; x++) {
-                                if (tds.get(3).text().equals(today)) {
+                                //If we're scraping JUST TODAY's additions...
+                                if (justToday) {
+                                    //If the row's date matches today's date...
+                                    if (tds.get(3).text().equals(dateToScrape)) {
+                                        //grab this row's data
+                                        data[entries / 4][x - 1] = tds.get(x).text();
+                                        //if we haven't incremented the entries yet...
+                                        if (!beenIncremented) {
+                                            //Do it now...
+                                            entries++;
+                                            //And set to true so we don't do it again.
+                                            beenIncremented = true;
+                                        }
+                                    }
+                                } //If we're scraping ALL DAYS...
+                                else if (allDays) {
+                                    //grab this row's data
                                     data[entries / 4][x - 1] = tds.get(x).text();
+                                    //if we haven't incremented the entries yet...
                                     if (!beenIncremented) {
+                                        //Do it now...
                                         entries++;
+                                        //And set to true so we don't do it again.
                                         beenIncremented = true;
                                     }
-
+                                } //If we're scraping the PAST THREE DAYS...
+                                else if (pastThree) {
+                                    //If the row's date matches any of the three dates we're concerned with...
+                                    if (tds.get(3).text().equals(dateToScrape)
+                                            || tds.get(3).text().equals(dateToScrape2)
+                                            || tds.get(3).text().equals(dateToScrape3)) {
+                                        //Grab this row's data
+                                        data[entries / 4][x - 1] = tds.get(x).text();
+                                        //if we haven't incremented the entries yet...
+                                        if (!beenIncremented) {
+                                            //Do it now...
+                                            entries++;
+                                            //And set to true so we don't do it again.
+                                            beenIncremented = true;
+                                        }
+                                    }
                                 }
+                                //Reset this back to false so we can check on the next iteration.
                                 beenIncremented = false;
                             }
-                            rowNum++;
                         }
                     }
                 }
             }
 
-            jTableData.setModel(new DefaultTableModel(data, columnNames));
+            //If we actually scraped anything...
+            if (entries > 0) {
+                //Put this new found data into the GUI table.
+                jTableData.setModel(new DefaultTableModel(data, columnNames));
+            }
+            //Turn back on the EXPORT button.
             jButtonExport.setEnabled(true);
+            //And turn back on the RUN button.
             jButtonRun.setEnabled(true);
-        } catch (SocketTimeoutException ste) {
+            //Set GUI as done.
+            setDone();
+
+        } //Catch exception for connection time out.
+        catch (SocketTimeoutException ste) {
             JOptionPane.showMessageDialog(null, "Connection has timed out!");
-        } catch (IOException ex) {
+        } //Catch IOException
+        catch (IOException ex) {
             Logger.getLogger(jFrameMain.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
+    /**
+     * Method to set GUI to DONE.
+     */
+    private void setDone() {
+        //Set progress pane's text to 100%
+        jTextPane1.setText("                                   "
+                + "  Percent completed: " + 100 + "% (" + makeCodes.length
+                + " out of " + makeCodes.length + " || Entries Collected: "
+                + entries / 4 + ")");
+        //Set progress bar to 100%.
+        jProgressBar1.setValue(100);
+    }
+
+    /**
+     * Event listener for EXCEL button.
+     *
+     * @param evt
+     */
     private void jButtonExportActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonExportActionPerformed
+        //Call excel method to export the GUI table's data to an editable file.
         toExcel(jTableData, file);
     }//GEN-LAST:event_jButtonExportActionPerformed
+
+    /**
+     * Event listener for JUST TODAY button.
+     *
+     * @param evt
+     */
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        //Toggle justToday on and everything else off.
+        justToday = true;
+        allDays = false;
+        pastThree = false;
+        //And alert the user.
+        jTextPane1.setText("                                                "
+                + "                JUST TODAY's cars will be scraped!");
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    /**
+     * Event listener for PAST THREE button.
+     *
+     * @param evt
+     */
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        //Toggle pastThree on and everything else off.
+        pastThree = true;
+        allDays = false;
+        justToday = false;
+        //And alert the user.
+        jTextPane1.setText("                                                "
+                + "    The PAST THREE DAYS of cars will be scraped!");
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    /**
+     * Event listener for ALL DAYS button.
+     *
+     * @param evt
+     */
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        //Toggle allDays on and everything else off.
+        allDays = true;
+        justToday = false;
+        pastThree = false;
+        //And alert the user.
+        jTextPane1.setText("                                                "
+                + "                       ALL cars will be scraped!");
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -294,6 +519,9 @@ public class jFrameMain extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButtonExport;
     private javax.swing.JButton jButtonRun;
     private javax.swing.JProgressBar jProgressBar1;
@@ -303,34 +531,40 @@ public class jFrameMain extends javax.swing.JFrame {
     private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * Method to export to excel file.
+     *
+     * @param table : Table object to export from.
+     * @param file : File to export to.
+     */
     private void toExcel(JTable table, File file) {
+        //Try to...
         try {
+            //Grab the model from the table passed.
             TableModel model = table.getModel();
-            FileWriter excel = new FileWriter(file);
-
-            for (int i = 0; i < model.getColumnCount(); i++) {
-                excel.write(model.getColumnName(i) + "\t");
-            }
-
-            excel.write("\n");
-
-            for (int i = 0; i < model.getRowCount(); i++) {
-                for (int j = 0; j < model.getColumnCount(); j++) {
-                    try {
-                        if (model.getValueAt(i, j).toString() == null) {
-                            excel.write(" ");
-                        } else {
-                            excel.write(model.getValueAt(i, j).toString() + "\t");
-                        }
-                    } catch (NullPointerException e) {
-                        JOptionPane.showMessageDialog(table, e + " at " + i + "," + j);
-                    }
+            try (FileWriter excel = new FileWriter(file)) {
+                for (int i = 0; i < model.getColumnCount(); i++) {
+                    excel.write(model.getColumnName(i) + "\t");
                 }
-                excel.write("\n");
-            }
 
-            excel.close();
-            JOptionPane.showMessageDialog(rootPane, "Excel file successfully saved to desktop as excel_" + dateFormat.format(date) + ".tsv!");
+                excel.write("\n");
+
+                for (int i = 0; i < model.getRowCount(); i++) {
+                    for (int j = 0; j < model.getColumnCount(); j++) {
+                        try {
+                            if (model.getValueAt(i, j).toString() == null) {
+                                excel.write(" ");
+                            } else {
+                                excel.write(model.getValueAt(i, j).toString() + "\t");
+                            }
+                        } catch (NullPointerException e) {
+                            JOptionPane.showMessageDialog(table, e + " at " + i + "," + j);
+                        }
+                    }
+                    excel.write("\n");
+                }
+            }
+            JOptionPane.showMessageDialog(rootPane, "Excel file successfully saved to desktop as excel_" + dateFormatForExcelFile.format(dateForExcelFile) + ".tsv!");
 
         } catch (IOException e) {
             System.out.println(e);
