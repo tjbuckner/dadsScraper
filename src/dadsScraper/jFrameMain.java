@@ -51,7 +51,6 @@ public class jFrameMain extends javax.swing.JFrame {
     //URL page number that is being scraped.
     private int pageNum;
 
-    //    private int rowNum = 0;
     //Number of entries scraped.
     private int entries = 0;
     //Percentage of pages scraped.
@@ -82,6 +81,8 @@ public class jFrameMain extends javax.swing.JFrame {
     String filePath = System.getProperty("user.home") + "\\Desktop\\excel_"
             + dateFormatForExcelFile.format(dateForExcelFile) + ".tsv";
     File file = new File(filePath);
+    
+    DefaultTableModel dtm;
 
     /**
      * Creates new form jFrameMain
@@ -129,8 +130,27 @@ public class jFrameMain extends javax.swing.JFrame {
             }
         });
 
+        jTableData.setAutoCreateRowSorter(true);
         jTableData.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
@@ -164,14 +184,14 @@ public class jFrameMain extends javax.swing.JFrame {
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                true, false, false, true
+                false, false, false, false
             };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
-        jTableData.setFocusable(false);
+        jTableData.setFillsViewportHeight(true);
         jScrollPaneForTable.setViewportView(jTableData);
 
         jTextPane1.setEditable(false);
@@ -213,32 +233,29 @@ public class jFrameMain extends javax.swing.JFrame {
                     .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jProgressBar1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(jButtonRun, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButtonExport, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 189, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.PREFERRED_SIZE, 455, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPaneForTable, javax.swing.GroupLayout.DEFAULT_SIZE, 745, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -291,6 +308,9 @@ public class jFrameMain extends javax.swing.JFrame {
     private void scrape() {
         //Disable the run button while we're running (duh!).
         jButtonRun.setEnabled(false);
+        jButton1.setEnabled(false);
+        jButton2.setEnabled(false);
+        jButton3.setEnabled(false);
 
         //Fill the data array with empty information.
         for (String[] row : data) {
@@ -324,13 +344,13 @@ public class jFrameMain extends javax.swing.JFrame {
                 //Keep track of percentage we've done (also for update GUI).
                 percent = ((double) i * 100.0f) / (double) makeCodes.length;
 
-                //New thread to update GUI.
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateProgress();
-                    }
-                });
+//                //New thread to update GUI.
+//                SwingUtilities.invokeLater(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        updateProgress();
+//                    }
+//                });
 
                 //Boolean to keep track of incrementing entries (once per entry).
                 boolean beenIncremented = false;
@@ -376,6 +396,7 @@ public class jFrameMain extends javax.swing.JFrame {
                                     if (tds.get(3).text().equals(dateToScrape)
                                             || tds.get(3).text().equals(dateToScrape2)
                                             || tds.get(3).text().equals(dateToScrape3)) {
+                                        
                                         //Grab this row's data
                                         data[entries / 4][x - 1] = tds.get(x).text();
                                         //if we haven't incremented the entries yet...
@@ -392,18 +413,32 @@ public class jFrameMain extends javax.swing.JFrame {
                             }
                         }
                     }
+                    
+                    //New thread to update GUI.
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateProgress();
+                    }
+                });
                 }
             }
 
             //If we actually scraped anything...
             if (entries > 0) {
-                //Put this new found data into the GUI table.
-                jTableData.setModel(new DefaultTableModel(data, columnNames));
+                
+                dtm = new DefaultTableModel(data, columnNames);                
+                
+                dtm.setRowCount(entries/4);
+                jTableData.setModel(dtm);
             }
             //Turn back on the EXPORT button.
             jButtonExport.setEnabled(true);
             //And turn back on the RUN button.
             jButtonRun.setEnabled(true);
+            jButton1.setEnabled(true);
+            jButton2.setEnabled(true);
+            jButton3.setEnabled(true);
             //Set GUI as done.
             setDone();
 
